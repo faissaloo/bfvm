@@ -1,0 +1,12 @@
+{
+	"description": "A virtual machine for BrainFuck that supports mocked input, argument passing, silent mode and cycle limiting.",
+	"license": "GPLv3",
+	"authors": [
+		"Faissal Bensefia"
+	],
+	"copyright": "Copyright © 2018, Faissal Bensefia",
+	"name": "bfvm",
+	"dependencies": {
+		"arsd-official:terminal": "~>2.1.3"
+	}
+}

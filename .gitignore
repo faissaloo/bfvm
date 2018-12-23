@@ -1,0 +1,11 @@
+.dub
+docs.json
+__dummy.html
+docs/
+bfvm
+*.so
+*.a
+*.exe
+*.o
+*.obj
+*.lst
