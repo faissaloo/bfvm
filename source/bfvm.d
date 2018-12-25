@@ -5,6 +5,7 @@ import std.string;
 import std.algorithm;
 import std.array;
 import std.range;
+import std.exception;
 import arsd.terminal;
 
 class BFVM
@@ -20,6 +21,8 @@ class BFVM
 	size_t input_ptr;
 	size_t memory_ptr;
 	size_t instruction_ptr;
+
+	static instruction_set = [".",",","<",">","[","]","+","-"];
 
 	this(size_t memory_size = 4096, bool silent = false)
 	{
@@ -40,7 +43,7 @@ class BFVM
 		output = "";
 		input_ptr = 0;
 		memory_ptr = 0;
-		mock_input = "";
+		mock_input = null;
 		instruction_ptr = 0;
 		clearMemory();
 	}
@@ -179,7 +182,7 @@ class BFVM
 
 	auto getInput()
 	{
-		if (mock_input != "")
+		if (mock_input != null)
 		{
 			if (input_ptr < mock_input.length)
 			{
@@ -201,6 +204,11 @@ class BFVM
 	}
 }
 
+static class InvalidProgram : Exception
+{
+    mixin basicExceptionCtors;
+}
+
 class BricketFinder
 {
 	size_t[size_t] open_bricket_map;
@@ -219,11 +227,23 @@ class BricketFinder
 			}
 			if (program[instruction_ptr] == ']')
 			{
-				close_bricket_map[instruction_ptr] = open_bricket_stack.back();
-				open_bricket_map[open_bricket_stack.back()] = instruction_ptr;
-				open_bricket_stack.popBack();
+				if (open_bricket_stack.length>0)
+				{
+					close_bricket_map[instruction_ptr] = open_bricket_stack.back();
+					open_bricket_map[open_bricket_stack.back()] = instruction_ptr;
+					open_bricket_stack.popBack();
+				}
+				else
+				{
+					throw new InvalidProgram("Orphaned closing bricket");
+				}
 			}
 			instruction_ptr++;
+		}
+
+		if (open_bricket_stack.length>0)
+		{
+			throw new InvalidProgram("Unterminated open bricket");
 		}
 	}
 
@@ -261,6 +281,22 @@ unittest
 	vm.load("[[>]++++++++++++++++++++++++++++++++[<]>-]>[>]<----------------------[<]>[.>]");
 	vm.run(0, ["./bfvm","dank memes"]);
 	assert(vm.dumpOutput()=="./bfvm dank memes\n");
+}
+
+unittest
+{
+	writeln("Invalid syntax");
+	auto vm = new BFVM();
+	vm.toggleSilence();
+	try
+	{
+		vm.load(">>>]");
+		assert(false);
+	}
+	catch (InvalidProgram e)
+	{
+		assert(true);
+	}
 }
 
 unittest
